@@ -86,18 +86,18 @@
                       Подарить баллы</button>
                 </div>
                 <div class="content__tabs tabs">
-                    <button data-id="all" type="button"
-                    class="js-tabs-btn tabs__item tabs__item--active">
-                      Все товары</button>
-                    <button data-id="clothes" type="button" class="js-tabs-btn tabs__item">
-                      Одежда</button>
-                    <button data-id="accessories" type="button" class="js-tabs-btn tabs__item">
-                      Аксессуары</button>
+                    <button
+                    v-for="tab in tabs" :key="tab.value"
+                    :class="{ 'tabs__item--active': tab.value === activeTab }"
+                    @click="sortTabs(tab)"
+                    data-id="all" type="button"
+                    class="js-tabs-btn tabs__item">
+                    {{tab.name}}</button>
                 </div>
                 <div class="content">
                   <div class="content__products">
                     <div
-                    v-for="item in products" :key="item.id"
+                    v-for="item in filterProducts" :key="item.id"
                     class="content__product">
                       <div class="card">
                         <div class="card__image">
@@ -221,21 +221,31 @@
 <script>
 import { clothes, accessories } from './mock';
 
+const allStuff = clothes.concat(accessories).sort((good) => (good.badge ? -1 : 1));
+const newClothes = clothes.sort((good) => (good.badge ? -1 : 1));
+const newAccessories = accessories.sort((good) => (good.badge ? -1 : 1));
+
 export default {
   name: 'App',
   data() {
     return {
       isShowModal: false,
-      currentTab: 'all',
+      allStuff,
+      tabs: [
+        { name: 'Все товары', id: 1, value: 'allStuff' },
+        { name: 'Одежда', id: 2, value: 'clothes' },
+        { name: 'Аксессуары', id: 3, value: 'accessories' },
+      ],
+      activeTab: 'allStuff',
+      sortedProducts: [],
     };
   },
   computed: {
-    products() {
-      switch (this.currentTab) {
-        case 'accessories': return accessories.slice();
-        case 'clothes': return clothes.slice();
-        default: return [...accessories, ...clothes];
+    filterProducts() {
+      if (this.sortedProducts.length) {
+        return this.sortedProducts;
       }
+      return this.allStuff;
     },
   },
   methods: {
@@ -244,6 +254,18 @@ export default {
     },
     closeModal() {
       this.isShowModal = false;
+    },
+    sortTabs(tab) {
+      this.activeTab = tab.value;
+      if (tab.value === 'clothes') {
+        this.sortedProducts = newClothes;
+        return;
+      }
+      if (tab.value === 'accessories') {
+        this.sortedProducts = newAccessories;
+        return;
+      }
+      this.sortedProducts = allStuff;
     },
   },
 };
